@@ -48,7 +48,13 @@ class chocolatey (
   $use_7zip                       = $::chocolatey::params::use_7zip,
   $choco_install_timeout_seconds  = $::chocolatey::params::install_timeout_seconds,
   $chocolatey_download_url        = $::chocolatey::params::download_url,
-  $enable_autouninstaller         = $::chocolatey::params::enable_autouninstaller
+  $enable_checksumfiles           = $::chocolatey::params::enable_checksumfiles,
+  $enable_autouninstaller         = $::chocolatey::params::enable_autouninstaller,
+  $enable_allowglobalconfirmation = $::chocolatey::params::enable_allowglobalconfirmation,
+  $enable_failonautouninstaller   = $::chocolatey::params::enable_failonautouninstaller,
+  $disable_default_source         = $::chocolatey::params::disable_default_source,
+  $sources                        = $::chocolatey::params::sources,
+
 ) inherits ::chocolatey::params {
 
   validate_re($chocolatey_download_url,['^http\:\/\/','^https\:\/\/'],

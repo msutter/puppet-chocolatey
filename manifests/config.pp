@@ -1,5 +1,12 @@
 # chocolatey::config - Private class used for configuration
-class chocolatey::config {
+class chocolatey::config(
+  $enable_checksumfiles           = $::chocolatey::enable_checksumfiles,
+  $enable_autouninstaller         = $::chocolatey::enable_autouninstaller,
+  $enable_allowglobalconfirmation = $::chocolatey::enable_allowglobalconfirmation,
+  $enable_failonautouninstaller   = $::chocolatey::enable_failonautouninstaller,
+  $disable_default_source         = $::chocolatey::disable_default_source,
+  $sources                        = $::chocolatey::sources,
+){
   assert_private()
 
   # this will require a second converge when choco is not
@@ -9,17 +16,31 @@ class chocolatey::config {
   # user may link to - it could be an older version of
   # Chocolatey
   if versioncmp($::chocolateyversion, '0.9.9.0') >= 0 {
-    $_choco_exe_path = "${chocolatey::choco_install_location}\\bin\\choco.exe"
-
-    $_enable_autouninstaller = $chocolatey::enable_autouninstaller ? {
-      false => 'disable',
-      default => 'enable'
+    feature {'checksumFiles':
+      enable => $enable_checksumfiles
     }
 
-    exec { "chocolatey_autouninstaller_${_enable_autouninstaller}":
-      path    => $::path,
-      command => "${_choco_exe_path} feature -r ${_enable_autouninstaller} -n autoUninstaller",
-      unless  => "cmd.exe /c ${_choco_exe_path} feature list -r | findstr /X /I /C:\"autoUninstaller - [${_enable_autouninstaller}d]\"",
+    feature {'autoUninstaller':
+      enable => $enable_autouninstaller
+    }
+
+    feature {'allowGlobalConfirmation':
+      enable => $enable_allowglobalconfirmation
+    }
+
+    feature {'failOnAutoUninstaller':
+      enable => $enable_failonautouninstaller
+    }
+
+  } else {
+    notify{'features are ignored on chocolatey version < 0.9.9':}
+  }
+
+  if $disable_default_source {
+    source {'chocolatey':
+      enable => false,
     }
   }
+
+  create_resources(source, $sources)
 }
