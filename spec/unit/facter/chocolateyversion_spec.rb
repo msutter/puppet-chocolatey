@@ -1,38 +1,64 @@
-require 'facter'
+require 'spec_helper'
 require 'rspec/its'
 
-describe 'chocolateyversion fact' do
+describe 'chocolateyversion fact', :type => :fact do
   subject(:fact) { Facter.fact(:chocolateyversion) }
 
-  context 'on Windows', :if => Puppet::Util::Platform.windows? do
-    it "should return the value from running choco -v" do
-      expected_value = '1.2.3'
-      Facter::Util::Resolution.expects(:exec).returns(expected_value)
+  before :each do
+    Facter.fact(:kernel).stubs(:value).returns('windows')
+    Facter.fact(:choco_install_path).stubs(:value).returns('C:\ProgramData\chocolatey')
+  end
 
-      subject.value.must == expected_value
+  let(:chocopath) { Facter.value(:choco_install_path) }
+  let(:command) { "#{chocopath}\\bin\\choco.exe -v" }
+
+  context 'when chocolatey is installed' do
+    before :each do
+      File.stubs(:exist?).
+        with(chocopath).
+        returns(true)
     end
 
-    it "should handle cleaning up spaces" do
-      expected_value = '1.2.3'
-      Facter::Util::Resolution.expects(:exec).returns(' ' + expected_value + ' ')
+    context 'with version < 0.9.9' do
+      before :each do
+        Facter::Util::Resolution.stubs(:exec).
+          with(command).
+          returns("Please run chocolatey /? or chocolatey help - chocolatey v0.9.8.31")
+      end
 
-      subject.value.must == expected_value
+      it 'should return version' do
+        Facter.fact(:chocolateyversion).value.should == '0.9.8.31'
+      end
     end
 
-    it "should handle older versions of choco" do
-      expected_value = '1.2.3'
-      Facter::Util::Resolution.expects(:exec).returns('Please run chocolatey /? or chocolatey help - chocolatey v' + expected_value)
+    context 'with version >= 0.9.9' do
+      before :each do
+        Facter::Util::Resolution.stubs(:exec).
+          with(command).
+          returns("0.9.9.8")
+      end
 
-      subject.value.must == expected_value
+      it 'should return version' do
+        Facter.fact(:chocolateyversion).value.should == '0.9.9.8'
+      end
     end
   end
 
-  context 'on Linux', :if => Puppet.features.posix? do
-    its(:value) { should eql('0') }
+  context 'when chocolatey is not installed' do
+    before :each do
+      File.stubs(:exist?).
+        with(chocopath).
+        returns(false)
+    end
+
+    it 'should return nil' do
+      Facter.fact(:chocolateyversion).value.should be_nil
+    end
   end
 
   after :each do
     Facter.clear
     Facter.clear_messages
   end
+
 end

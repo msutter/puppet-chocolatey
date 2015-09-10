@@ -1,18 +1,14 @@
 Facter.add('chocolateyversion') do
+  confine :kernel => 'windows'
   setcode do
-    value = nil
-
-    choco_path = "#{Facter.value(:choco_install_path)}\\bin\\choco.exe"
-    if Puppet::Util::Platform.windows? && File.exist?(choco_path)
-      begin
-        old_choco_message = 'Please run chocolatey /? or chocolatey help - chocolatey v'
-        #Facter::Core::Execution.exec is 2.0.1 forward
-        value = Facter::Util::Resolution.exec("#{choco_path} -v").gsub(old_choco_message,'').strip
-      rescue StandardError => e
-        value = '0'
-      end
+    version = nil
+    chocopath = Facter.value(:choco_install_path)
+    if File.exist? chocopath
+      command = "#{chocopath}\\bin\\choco.exe -v"
+      command_result = Facter::Util::Resolution.exec(command)
+      old_choco_message = 'Please run chocolatey /? or chocolatey help - chocolatey v'
+      version = command_result.gsub(old_choco_message,'').strip
     end
-
-    value || '0'
+    version
   end
 end
