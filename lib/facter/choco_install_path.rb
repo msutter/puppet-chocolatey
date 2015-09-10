@@ -1,4 +1,5 @@
 Facter.add('choco_install_path') do
+  confine :kernel => 'windows'
   setcode do
 
     if Puppet::Util::Platform.windows?
