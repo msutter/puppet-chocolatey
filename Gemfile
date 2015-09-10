@@ -32,6 +32,7 @@ group :development do
   gem 'rspec', '>= 3', '< 3.2.0',     :require => false # https://github.com/rspec/rspec-core/issues/1864
   gem 'rspec-its',                    :require => false
   gem 'puppet-lint',                  :require => false
+  gem 'rspec-puppet-utils',           :require => false
   gem 'puppetlabs_spec_helper',       :require => false
   gem 'puppet_facts',                 :require => false
   gem 'mocha', '~>0.10.5',            :require => false

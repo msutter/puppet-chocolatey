@@ -14,6 +14,7 @@ gems = [
   #'minitest/unit', # https://github.com/freerange/mocha#bundler
   'mocha', # http://gofreerange.com/mocha/docs/Mocha/Configuration.html
   'puppet',
+  'rspec-puppet-utils',
 ]
 begin
   gems.each {|gem| require gem}
