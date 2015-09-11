@@ -57,14 +57,8 @@ describe 'chocolatey::config::feature', :type => 'define' do
                :feature_name => 'myfeature',
                :enable       => true
         )}
-
-        it { should contain_exec('enable_feature_myfeature').with(
-               :onlyif => true
-        )}
-
-        it { should contain_exec('disable_feature_myfeature').with(
-               :onlyif => false
-        )}
+        it { should contain_exec('enable_feature_myfeature')}
+        it { should_not contain_exec('disable_feature_myfeature')}
 
       end # 'and feature exists'
     end
@@ -88,13 +82,12 @@ describe 'chocolatey::config::feature', :type => 'define' do
           )
         end
 
-        it { should contain_exec('enable_feature_myfeature').with(
-               :onlyif => false
+        it { should contain_chocolatey__config__feature('myfeature').with(
+               :feature_name => 'myfeature',
+               :enable       => true
         )}
-
-        it { should contain_exec('disable_feature_myfeature').with(
-               :onlyif => false
-        )}
+        it { should_not contain_exec('enable_feature_myfeature')}
+        it { should_not contain_exec('disable_feature_myfeature')}
 
       end
     end
@@ -163,14 +156,8 @@ describe 'chocolatey::config::feature', :type => 'define' do
                :feature_name => 'myfeature',
                :enable       => false
         )}
-
-        it { should contain_exec('enable_feature_myfeature').with(
-               :onlyif => false
-        )}
-
-        it { should contain_exec('disable_feature_myfeature').with(
-               :onlyif => true
-        )}
+        it { should_not contain_exec('enable_feature_myfeature')}
+        it { should contain_exec('disable_feature_myfeature')}
 
       end # 'and feature exists'
     end

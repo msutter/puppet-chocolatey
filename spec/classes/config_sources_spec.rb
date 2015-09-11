@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe 'chocolatey::config', :type => 'class' do
+describe 'chocolatey', :type => 'class' do
 
   let(:pre_condition) do
     "
@@ -52,18 +52,66 @@ describe 'chocolatey::config', :type => 'class' do
     }
   end
 
-  context 'when calling the class from outside the current module' do
+  context 'when default source should be disabled' do
+    before :each do
+      params.merge!(
+        {
+          :disable_default_source => true,
+        }
+      )
+    end
 
-    error_message = 'Class chocolatey::config is private'
-    it "should fail with message #{error_message}" do
-      expect { should compile }.to raise_error(/#{error_message}/)
+    context 'and status is already disabled' do
+      before :each do
+        facts.merge!(
+          {
+            :choco_sources => {
+              'chocolatey' => {
+                'location' => 'https://chocolatey.org/api/v2',
+                'status'   => 'Disabled',
+              },
+            },
+          }
+        )
+      end
+
+      it { should contain_chocolatey__config__source('chocolatey').with(
+             :enable => false
+      )}
+      it { should_not contain_exec('add_source_chocolatey')}
+      it { should_not contain_exec('remove_source_chocolatey')}
+      it { should_not contain_exec('enable_source_chocolatey')}
+      it { should_not contain_exec('disable_source_chocolatey')}
+
+    end
+    context 'and status is enabled' do
+      before :each do
+        facts.merge!(
+          {
+            :choco_sources => {
+              'chocolatey' => {
+                'location' => 'https://chocolatey.org/api/v2',
+                'status'   => 'Enabled',
+              },
+            },
+          }
+        )
+      end
+
+      it { should contain_chocolatey__config__source('chocolatey').with(
+             :enable => false
+      )}
+      it { should_not contain_exec('add_source_chocolatey')}
+      it { should_not contain_exec('remove_source_chocolatey')}
+      it { should_not contain_exec('enable_source_chocolatey')}
+      it { should contain_exec('disable_source_chocolatey').with(
+             :before => nil
+      )}
+
     end
   end
 
   context 'with custom sources' do
-    before :each do
-      MockFunction.new('assert_private', {:type => :statement})
-    end
 
     it { should contain_chocolatey__config__source('mycustomsource').with(
            :ensure      => 'present',
@@ -75,24 +123,12 @@ describe 'chocolatey::config', :type => 'class' do
     )}
 
 
-    it { should contain_exec('remove_source_mycustomsource').with(
-           :onlyif => false,
-           :before => 'Exec[add_source_mycustomsource]'
-    )}
-
+    it { should_not contain_exec('remove_source_mycustomsource')}
     it { should contain_exec('add_source_mycustomsource').with(
-           :onlyif => true,
-           :before => 'Exec[enable_source_mycustomsource]'
+           :before => nil
     )}
-
-    it { should contain_exec('enable_source_mycustomsource').with(
-           :onlyif => false,
-           :before => 'Exec[disable_source_mycustomsource]'
-    )}
-
-    it { should contain_exec('disable_source_mycustomsource').with(
-           :onlyif => false,
-    )}
+    it { should_not contain_exec('enable_source_mycustomsource')}
+    it { should_not contain_exec('disable_source_mycustomsource')}
 
   end
 end

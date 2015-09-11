@@ -61,13 +61,9 @@ describe 'chocolatey::config::source', :type => 'define' do
                  :password    => 'mypassword'
           )}
 
-          it { should contain_exec('remove_source_mysource').with(
-                 :onlyif => false
-          )}
-
+          it { should_not contain_exec('remove_source_mysource')}
           it { should contain_exec('add_source_mysource').with(
                  :command => 'C:\ProgramData\chocolatey\bin\choco.exe sources add -name mysource -source http://mysource/api/v2 -user myuser -password mypassword',
-                 :onlyif => true,
           )}
         end # 'and choco version is greater 0.9.9'
 
@@ -88,23 +84,17 @@ describe 'chocolatey::config::source', :type => 'define' do
                  :user_name   => 'myuser',
                  :password    => 'mypassword'
           )}
-
           it { should contain_notify(
                  "Ignoring parameter 'user_name' which is supported on choco version < 0.9.9"
           )}
-
           it { should contain_notify(
                  "Ignoring parameter 'password' which is supported on choco version < 0.9.9"
           )}
-
-          it { should contain_exec('remove_source_mysource').with(
-                 :onlyif => false
-          )}
-
+          it { should_not contain_exec('remove_source_mysource')}
           it { should contain_exec('add_source_mysource').with(
                  :command => 'C:\ProgramData\chocolatey\bin\choco.exe sources add -name mysource -source http://mysource/api/v2',
-                 :onlyif => true,
           )}
+
         end # 'and choco version is lesser 0.9.9'
       end # 'with user and password'
       context 'when enable is true' do
@@ -115,21 +105,10 @@ describe 'chocolatey::config::source', :type => 'define' do
             }
           )
         end
-        it { should contain_exec('add_source_mysource').with(
-               :onlyif => true
-        )}
-
-        it { should contain_exec('remove_source_mysource').with(
-               :onlyif => false
-        )}
-
-        it { should contain_exec('enable_source_mysource').with(
-               :onlyif => false
-        )}
-
-        it { should contain_exec('disable_source_mysource').with(
-               :onlyif => false
-        )}
+        it { should contain_exec('add_source_mysource')}
+        it { should_not contain_exec('remove_source_mysource')}
+        it { should_not contain_exec('enable_source_mysource')}
+        it { should_not contain_exec('disable_source_mysource')}
 
       end
 
@@ -141,22 +120,11 @@ describe 'chocolatey::config::source', :type => 'define' do
             }
           )
         end
-        it { should contain_exec('add_source_mysource').with(
-               :onlyif => true
-        )}
+        it { should contain_exec('add_source_mysource')}
+        it { should_not contain_exec('remove_source_mysource')}
+        it { should_not contain_exec('enable_source_mysource')}
+        it { should contain_exec('disable_source_mysource')}
 
-        it { should contain_exec('remove_source_mysource').with(
-               :onlyif => false
-        )}
-
-        it { should contain_exec('enable_source_mysource').with(
-               :onlyif => false
-        )}
-
-        # Special case. This needs a second puppet run to disable a source
-        it { should contain_exec('disable_source_mysource').with(
-               :onlyif => false
-        )}
 
       end # 'when enable is false'
     end # 'and source does not exists'
@@ -189,13 +157,11 @@ describe 'chocolatey::config::source', :type => 'define' do
                :password    => nil,
         )}
 
-        it { should contain_exec('add_source_mysource').with(
-               :onlyif => false
-        )}
 
-        it { should contain_exec('remove_source_mysource').with(
-               :onlyif => false
-        )}
+        it { should_not contain_exec('add_source_mysource')}
+        it { should_not contain_exec('remove_source_mysource')}
+        it { should_not contain_exec('enable_source_mysource')}
+        it { should_not contain_exec('disable_source_mysource')}
 
         context 'and location is not in sync' do
           before :each do
@@ -217,13 +183,14 @@ describe 'chocolatey::config::source', :type => 'define' do
 
           it { should contain_exec('remove_source_mysource').with(
                  :command => 'C:\ProgramData\chocolatey\bin\choco.exe sources remove -name mysource',
-                 :onlyif => true,
+                 :before => 'Exec[add_source_mysource]'
           )}
 
           it { should contain_exec('add_source_mysource').with(
                  :command => 'C:\ProgramData\chocolatey\bin\choco.exe sources add -name mysource -source http://mynewsource/api/v2',
-                 :onlyif => true,
           )}
+          it { should_not contain_exec('enable_source_mysource')}
+          it { should_not contain_exec('disable_source_mysource')}
 
           context 'with user and password' do
             before :each do
@@ -251,16 +218,15 @@ describe 'chocolatey::config::source', :type => 'define' do
                      :user_name   => 'myuser',
                      :password    => 'mypassword'
               )}
-
-
               it { should contain_exec('remove_source_mysource').with(
-                     :onlyif => true
+                     :before => 'Exec[add_source_mysource]'
               )}
-
               it { should contain_exec('add_source_mysource').with(
                      :command => 'C:\ProgramData\chocolatey\bin\choco.exe sources add -name mysource -source http://mynewsource/api/v2 -user myuser -password mypassword',
-                     :onlyif => true,
               )}
+              it { should_not contain_exec('enable_source_mysource')}
+              it { should_not contain_exec('disable_source_mysource')}
+
             end
 
             context 'and choco version is lesser 0.9.9' do
@@ -280,23 +246,20 @@ describe 'chocolatey::config::source', :type => 'define' do
                      :user_name   => 'myuser',
                      :password    => 'mypassword'
               )}
-
               it { should contain_notify(
                      "Ignoring parameter 'user_name' which is supported on choco version < 0.9.9"
               )}
-
               it { should contain_notify(
                      "Ignoring parameter 'password' which is supported on choco version < 0.9.9"
               )}
-
               it { should contain_exec('remove_source_mysource').with(
-                     :onlyif => true
+                     :before => 'Exec[add_source_mysource]'
               )}
-
               it { should contain_exec('add_source_mysource').with(
                      :command => 'C:\ProgramData\chocolatey\bin\choco.exe sources add -name mysource -source http://mynewsource/api/v2',
-                     :onlyif => true,
               )}
+              it { should_not contain_exec('enable_source_mysource')}
+              it { should_not contain_exec('disable_source_mysource')}
             end
           end
 
@@ -309,21 +272,11 @@ describe 'chocolatey::config::source', :type => 'define' do
               }
             )
           end
-          it { should contain_exec('add_source_mysource').with(
-                 :onlyif => false
-          )}
 
-          it { should contain_exec('remove_source_mysource').with(
-                 :onlyif => false
-          )}
-
-          it { should contain_exec('enable_source_mysource').with(
-                 :onlyif => false
-          )}
-
-          it { should contain_exec('disable_source_mysource').with(
-                 :onlyif => false
-          )}
+          it { should_not contain_exec('add_source_mysource')}
+          it { should_not contain_exec('remove_source_mysource')}
+          it { should_not contain_exec('enable_source_mysource')}
+          it { should_not contain_exec('disable_source_mysource')}
 
         end
       end # 'and source exists'
@@ -369,10 +322,13 @@ describe 'chocolatey::config::source', :type => 'define' do
                :password    => nil,
         )}
 
+        it { should_not contain_exec('add_source_mysource')}
         it { should contain_exec('remove_source_mysource').with(
                :command => 'C:\ProgramData\chocolatey\bin\choco.exe sources remove -name mysource',
-               :onlyif => true,
+               :before => nil,
         )}
+        it { should_not contain_exec('enable_source_mysource')}
+        it { should_not contain_exec('disable_source_mysource')}
 
       end
     end
@@ -397,21 +353,10 @@ describe 'chocolatey::config::source', :type => 'define' do
       end
       context 'and ensure is present' do
 
-        it { should contain_exec('add_source_mysource').with(
-               :onlyif => true
-        )}
-
-        it { should contain_exec('remove_source_mysource').with(
-               :onlyif => false
-        )}
-
-        it { should contain_exec('enable_source_mysource').with(
-               :onlyif => false
-        )}
-
-        it { should contain_exec('disable_source_mysource').with(
-               :onlyif => false
-        )}
+        it { should contain_exec('add_source_mysource')}
+        it { should_not contain_exec('remove_source_mysource')}
+        it { should_not contain_exec('enable_source_mysource')}
+        it { should_not contain_exec('disable_source_mysource')}
       end
 
       context 'and ensure is absent' do
@@ -423,21 +368,10 @@ describe 'chocolatey::config::source', :type => 'define' do
           )
         end # 'with ensure absent'
 
-        it { should contain_exec('add_source_mysource').with(
-               :onlyif => false
-        )}
-
-        it { should contain_exec('remove_source_mysource').with(
-               :onlyif => false
-        )}
-
-        it { should contain_exec('enable_source_mysource').with(
-               :onlyif => false
-        )}
-
-        it { should contain_exec('disable_source_mysource').with(
-               :onlyif => false
-        )}
+        it { should_not contain_exec('add_source_mysource')}
+        it { should_not contain_exec('remove_source_mysource')}
+        it { should_not contain_exec('enable_source_mysource')}
+        it { should_not contain_exec('disable_source_mysource')}
 
       end
 
@@ -460,13 +394,11 @@ describe 'chocolatey::config::source', :type => 'define' do
           )
         end
 
-        it { should contain_exec('enable_source_mysource').with(
-               :onlyif => false
-        )}
+        it { should_not contain_exec('remove_source_mysource')}
+        it { should_not contain_exec('add_source_mysource')}
+        it { should_not contain_exec('enable_source_mysource')}
+        it { should_not contain_exec('disable_source_mysource')}
 
-        it { should contain_exec('disable_source_mysource').with(
-               :onlyif => false
-        )}
       end
 
       context 'and status is disabled' do
@@ -482,15 +414,12 @@ describe 'chocolatey::config::source', :type => 'define' do
             }
           )
         end
-
+        it { should_not contain_exec('remove_source_mysource')}
+        it { should_not contain_exec('add_source_mysource')}
         it { should contain_exec('enable_source_mysource').with(
                :command => 'C:\ProgramData\chocolatey\bin\choco.exe sources enable -name mysource',
-               :onlyif  => true
         )}
-
-        it { should contain_exec('disable_source_mysource').with(
-               :onlyif => false
-        )}
+        it { should_not contain_exec('disable_source_mysource')}
 
       end # 'and location is not in sync'
     end # 'and source exists'
@@ -514,14 +443,10 @@ describe 'chocolatey::config::source', :type => 'define' do
           }
         )
       end
-
-      it { should contain_exec('enable_source_mysource').with(
-             :onlyif => false
-      )}
-
-      it { should contain_exec('disable_source_mysource').with(
-             :onlyif => false
-      )}
+      it { should_not contain_exec('remove_source_mysource')}
+      it { should contain_exec('add_source_mysource')}
+      it { should_not contain_exec('enable_source_mysource')}
+      it { should contain_exec('disable_source_mysource')}
 
     end
 
@@ -541,13 +466,11 @@ describe 'chocolatey::config::source', :type => 'define' do
             }
           )
         end
-
-        it { should contain_exec('enable_source_mysource').with(
-               :onlyif => false
-        )}
-
+        it { should_not contain_exec('remove_source_mysource')}
+        it { should_not contain_exec('add_source_mysource')}
+        it { should_not contain_exec('enable_source_mysource')}
         it { should contain_exec('disable_source_mysource').with(
-               :onlyif => true
+               :before => nil
         )}
       end
 
@@ -564,15 +487,10 @@ describe 'chocolatey::config::source', :type => 'define' do
             }
           )
         end
-
-        it { should contain_exec('enable_source_mysource').with(
-               :command => 'C:\ProgramData\chocolatey\bin\choco.exe sources enable -name mysource',
-               :onlyif  => false
-        )}
-
-        it { should contain_exec('disable_source_mysource').with(
-               :onlyif => false
-        )}
+        it { should_not contain_exec('remove_source_mysource')}
+        it { should_not contain_exec('add_source_mysource')}
+        it { should_not contain_exec('enable_source_mysource')}
+        it { should_not contain_exec('disable_source_mysource')}
 
       end # 'and location is not in sync'
     end # 'and source exists'

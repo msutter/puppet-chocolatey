@@ -1,13 +1,15 @@
 # chocolatey::config - Private class used for configuration
 class chocolatey::config(
-  $enable_checksumfiles           = $::chocolatey::enable_checksumfiles,
-  $enable_autouninstaller         = $::chocolatey::enable_autouninstaller,
-  $enable_allowglobalconfirmation = $::chocolatey::enable_allowglobalconfirmation,
-  $enable_failonautouninstaller   = $::chocolatey::enable_failonautouninstaller,
-  $disable_default_source         = $::chocolatey::disable_default_source,
-  $sources                        = $::chocolatey::sources,
 ){
+
   assert_private()
+
+  $enable_checksumfiles           = $::chocolatey::enable_checksumfiles
+  $enable_autouninstaller         = $::chocolatey::enable_autouninstaller
+  $enable_allowglobalconfirmation = $::chocolatey::enable_allowglobalconfirmation
+  $enable_failonautouninstaller   = $::chocolatey::enable_failonautouninstaller
+  $disable_default_source         = $::chocolatey::disable_default_source
+  $sources                        = $::chocolatey::sources
 
   # this will require a second converge when choco is not
   # installed the first time through. This is on purpose
